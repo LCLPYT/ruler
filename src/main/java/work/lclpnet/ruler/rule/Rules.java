@@ -11,8 +11,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
-import static work.lclpnet.ruler.RulerInit.identifier;
+import static work.lclpnet.ruler.Ruler.identifier;
 
 public class Rules {
 
@@ -27,7 +28,7 @@ public class Rules {
         WATER_FREEZING = register(identifier("water_freezing"), BooleanRule.create(true));
     }
 
-    public static <T extends Rule<?>> RuleKey<T> register(Identifier identifier, RuleFactory<T> factory) {
+    protected static <T extends Rule<?>> RuleKey<T> register(Identifier identifier, RuleFactory<T> factory) {
         var key = new RuleKey<T>(identifier);
 
         RULE_TYPES.put(key, factory);
@@ -42,7 +43,7 @@ public class Rules {
                 .stream()
                 .collect(ImmutableMap.<Map.Entry<RuleKey<?>, RuleFactory<?>>, RuleKey<?>, Rule<?>>toImmutableMap(
                         Map.Entry::getKey,
-                        e -> (Rule<?>) e.getValue().create()
+                        e -> e.getValue().create()
                 ));
     }
 
@@ -98,5 +99,9 @@ public class Rules {
         rules.forEach((key, rule) -> nbt.putString(key.identifier().toString(), rule.serialized()));
 
         return nbt;
+    }
+
+    public static void each(Consumer<RuleKey<? extends Rule<?>>> action) {
+        RULE_TYPES.keySet().forEach(action);
     }
 }

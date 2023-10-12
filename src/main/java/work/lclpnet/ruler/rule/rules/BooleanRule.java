@@ -28,7 +28,7 @@ public class BooleanRule implements Rule<Boolean> {
 
     @Override
     public void deserialize(String serialized) {
-        this.value = Boolean.valueOf(serialized);
+        this.value = Boolean.parseBoolean(serialized);
     }
 
     public boolean getBoolean() {

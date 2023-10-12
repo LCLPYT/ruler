@@ -1,0 +1,4 @@
+{
+  "ruler.cmd.rule.current": "Rule \"%s\" is currently set to \"%s\"",
+  "ruler.cmd.rule.updated": "Set rule \"%s\" to \"%s\""
+}
