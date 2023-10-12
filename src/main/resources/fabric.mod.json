@@ -16,10 +16,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-          "work.lclpnet.ruler.ExampleMod"
+          "work.lclpnet.ruler.RulerInit"
 		],
 		"client": [
-			"work.lclpnet.ruler.RulerClient"
+			"work.lclpnet.ruler.RulerClientInit"
 		]
 	},
 	"mixins": [

@@ -2,7 +2,7 @@ package work.lclpnet.ruler;
 
 import net.fabricmc.api.ClientModInitializer;
 
-public class RulerClient implements ClientModInitializer {
+public class RulerClientInit implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {

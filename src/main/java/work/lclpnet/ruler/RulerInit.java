@@ -1,17 +1,23 @@
 package work.lclpnet.ruler;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import work.lclpnet.ruler.cmd.RuleCommand;
 
-public class ExampleMod implements ModInitializer {
+public class RulerInit implements ModInitializer {
 
 	public static final String MOD_ID = "ruler";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	@Override
 	public void onInitialize() {
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			new RuleCommand().register(dispatcher);
+		});
+
 		LOGGER.info("Initialized.");
 	}
 

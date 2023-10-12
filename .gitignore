@@ -34,3 +34,5 @@ bin/
 
 run/
 logs/
+
+*.log
