@@ -5,4 +5,8 @@ public interface Rule<T> {
     T get();
 
     void set(T value);
+
+    String serialized();
+
+    void deserialize(String serialized);
 }

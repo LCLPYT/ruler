@@ -1,6 +1,8 @@
 package work.lclpnet.ruler.rule;
 
 import com.google.common.collect.ImmutableMap;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import work.lclpnet.ruler.rule.rules.BooleanRule;
@@ -76,5 +78,25 @@ public class Rules {
 
     public Set<RuleKey<?>> rules() {
         return Collections.unmodifiableSet(rules.keySet());
+    }
+
+    public void load(NbtCompound nbt) {
+        rules.forEach((key, rule) -> {
+            String id = key.identifier().toString();
+
+            if (!nbt.contains(id, NbtElement.STRING_TYPE)) return;
+
+            String value = nbt.getString(id);
+
+            rule.deserialize(value);
+        });
+    }
+
+    public NbtCompound toNbt() {
+        NbtCompound nbt = new NbtCompound();
+
+        rules.forEach((key, rule) -> nbt.putString(key.identifier().toString(), rule.serialized()));
+
+        return nbt;
     }
 }

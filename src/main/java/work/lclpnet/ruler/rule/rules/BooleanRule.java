@@ -21,6 +21,16 @@ public class BooleanRule implements Rule<Boolean> {
         setBoolean(value);
     }
 
+    @Override
+    public String serialized() {
+        return Boolean.toString(this.value);
+    }
+
+    @Override
+    public void deserialize(String serialized) {
+        this.value = Boolean.valueOf(serialized);
+    }
+
     public boolean getBoolean() {
         return value;
     }

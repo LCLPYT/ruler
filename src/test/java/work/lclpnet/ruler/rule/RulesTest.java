@@ -1,11 +1,14 @@
 package work.lclpnet.ruler.rule;
 
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.util.Identifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import work.lclpnet.ruler.rule.rules.BooleanRule;
 
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -77,6 +80,46 @@ class RulesTest {
         assertTrue(rules.getBoolean(Rules.ICE_MELTING));
     }
 
+    @Test
+    void toNbt_default_stringPairs() {
+        var rules = new Rules();
+        NbtCompound nbt = rules.toNbt();
+
+        for (String key : nbt.getKeys()) {
+            assertTrue(nbt.contains(key, NbtElement.STRING_TYPE), "Non string value");
+        }
+    }
+
+    @Test
+    void toNbt_default_allKeys() {
+        var rules = new Rules();
+        NbtCompound nbt = rules.toNbt();
+
+        var expected = Rules.RULE_TYPES.keySet().stream()
+                .map(RuleKey::identifier)
+                .map(Identifier::toString)
+                .collect(Collectors.toSet());
+
+        assertEquals(expected, nbt.getKeys());
+    }
+
+    @Test
+    void load_nbt_succeeds() {
+        final var rule = Rules.ICE_MELTING;
+
+        NbtCompound nbt = new NbtCompound();
+
+        @SuppressWarnings("unchecked")
+        boolean def = ((RuleFactory<BooleanRule>) Rules.RULE_TYPES.get(rule)).create().getBoolean();
+
+        nbt.putString(rule.identifier().toString(), Boolean.toString(!def));
+
+        var rules = new Rules();
+        rules.load(nbt);
+
+        assertEquals(!def, rules.get(rule));
+    }
+
     private static Stream<RuleKey<?>> keys() {
         return Rules.RULE_TYPES.keySet().stream();
     }
@@ -93,6 +136,16 @@ class RulesTest {
         @Override
         public void set(String value) {
             this.value = value;
+        }
+
+        @Override
+        public String serialized() {
+            return value;
+        }
+
+        @Override
+        public void deserialize(String serialized) {
+            this.value = serialized;
         }
     }
 }
