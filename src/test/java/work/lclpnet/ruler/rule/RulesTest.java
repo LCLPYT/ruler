@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import work.lclpnet.ruler.rule.rules.BooleanRule;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,7 +47,8 @@ class RulesTest {
         var rules = new Rules();
         T actual = rules.get(key);
 
-        var expected = Rules.RULE_TYPES.get(key).create().get();
+        RuleHandle handle = (oldValue, newValue) -> {};
+        var expected = Rules.RULE_TYPES.get(key).create(handle).get();
         assertEquals(expected, actual);
     }
 
@@ -65,8 +67,9 @@ class RulesTest {
 
         @SuppressWarnings("unchecked")
         var ruleFactory = (RuleFactory<BooleanRule>) Rules.RULE_TYPES.get(Rules.ICE_MELTING);
+        RuleHandle handle = (oldValue, newValue) -> {};
 
-        boolean expected = !ruleFactory.create().getBoolean();
+        boolean expected = !ruleFactory.create(handle).getBoolean();
 
         rules.set(Rules.ICE_MELTING, expected);
 
@@ -109,8 +112,10 @@ class RulesTest {
 
         NbtCompound nbt = new NbtCompound();
 
+        RuleHandle handle = (oldValue, newValue) -> {};
+
         @SuppressWarnings("unchecked")
-        boolean def = ((RuleFactory<BooleanRule>) Rules.RULE_TYPES.get(rule)).create().getBoolean();
+        boolean def = ((RuleFactory<BooleanRule>) Rules.RULE_TYPES.get(rule)).create(handle).getBoolean();
 
         nbt.putString(rule.identifier().toString(), Boolean.toString(!def));
 
@@ -120,13 +125,65 @@ class RulesTest {
         assertEquals(!def, rules.get(rule));
     }
 
+    @Test
+    void callback_given_isCalled() {
+        final var rule = Rules.ICE_MELTING;
+
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        var rules = new Rules((ruleKey, oldValue, newValue) -> {
+            assertEquals(rule, ruleKey);
+            assertEquals(true, oldValue);
+            assertEquals(false, newValue);
+
+            called.set(true);
+        });
+
+        rules.set(rule, false);
+
+        assertTrue(called.get());
+    }
+
+    @Test
+    void whenChanged_none_replaced() {
+        var rules = new Rules();
+
+        AtomicBoolean called = new AtomicBoolean();
+
+        rules.whenChanged((ruleKey, oldValue, newValue) -> called.set(true));
+
+        rules.set(Rules.ICE_MELTING, true);
+
+        assertTrue(called.get());
+    }
+
+    @Test
+    void whenChanged_callbackPresent_combined() {
+        AtomicBoolean called1 = new AtomicBoolean();
+        AtomicBoolean called2 = new AtomicBoolean();
+
+        var rules = new Rules((ruleKey, oldValue, newValue) -> called1.set(true));
+
+        rules.whenChanged((ruleKey, oldValue, newValue) -> called2.set(true));
+
+        rules.set(Rules.ICE_MELTING, true);
+
+        assertTrue(called1.get());
+        assertTrue(called2.get());
+    }
+
     private static Stream<RuleKey<?>> keys() {
         return Rules.RULE_TYPES.keySet().stream();
     }
 
     private static class TestRule implements Rule<String> {
 
+        private final RuleHandle handle;
         private String value = "test";
+
+        public TestRule(RuleHandle handle) {
+            this.handle = handle;
+        }
 
         @Override
         public String get() {
@@ -135,7 +192,9 @@ class RulesTest {
 
         @Override
         public void set(String value) {
+            String old = this.value;
             this.value = value;
+            handle.onChange(old, this.value);
         }
 
         @Override
@@ -146,6 +205,11 @@ class RulesTest {
         @Override
         public void deserialize(String serialized) {
             this.value = serialized;
+        }
+
+        @Override
+        public void changeFromInput(String input) {
+            set(input);
         }
     }
 }

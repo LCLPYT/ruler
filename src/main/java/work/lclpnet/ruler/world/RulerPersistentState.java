@@ -12,11 +12,12 @@ public class RulerPersistentState extends PersistentState {
     private final Rules rules;
 
     public RulerPersistentState() {
-        this.rules = new Rules();
+        this.rules = new Rules((ruleKey, oldValue, newValue) -> markDirty());
     }
 
     public RulerPersistentState(Rules rules) {
         this.rules = rules;
+        this.rules.whenChanged((ruleKey, oldValue, newValue) -> markDirty());
     }
 
     @Override
@@ -38,6 +39,13 @@ public class RulerPersistentState extends PersistentState {
 
     public static RulerPersistentState get(ServerWorld world) {
         PersistentStateManager manager = world.getPersistentStateManager();
-        return manager.getOrCreate(RulerPersistentState::fromNbt, RulerPersistentState::new, "ruler");
+
+        RulerPersistentState state = manager.getOrCreate(RulerPersistentState::fromNbt, RulerPersistentState::new,
+                "ruler");
+
+        // write initial data to the disk
+        state.markDirty();
+
+        return state;
     }
 }

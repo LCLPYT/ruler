@@ -5,6 +5,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import work.lclpnet.ruler.rule.rules.BooleanRule;
 
 import java.util.Collections;
@@ -37,14 +38,26 @@ public class Rules {
     }
 
     private final Map<RuleKey<?>, Rule<?>> rules;
+    @Nullable
+    private RuleChangeCallback callback;
 
     public Rules() {
+        this(null);
+    }
+
+    public Rules(@Nullable RuleChangeCallback callback) {
         rules = RULE_TYPES.entrySet()
                 .stream()
                 .collect(ImmutableMap.<Map.Entry<RuleKey<?>, RuleFactory<?>>, RuleKey<?>, Rule<?>>toImmutableMap(
                         Map.Entry::getKey,
-                        e -> e.getValue().create()
+                        e -> {
+                            RuleHandle handle = (oldValue, newValue) -> this.changed(e.getKey(), oldValue, newValue);
+
+                            return e.getValue().create(handle);
+                        }
                 ));
+
+        this.callback = callback;
     }
 
     @SuppressWarnings("unchecked")
@@ -99,6 +112,27 @@ public class Rules {
         rules.forEach((key, rule) -> nbt.putString(key.identifier().toString(), rule.serialized()));
 
         return nbt;
+    }
+
+    private void changed(RuleKey<?> rule, Object oldValue, Object newValue) {
+        if (callback == null) return;
+
+        callback.onChange(rule, oldValue, newValue);
+    }
+
+    public void whenChanged(RuleChangeCallback callback) {
+        if (this.callback == null) {
+            this.callback = callback;
+            return;
+        }
+
+        // combine callbacks
+        RuleChangeCallback oldCallback = this.callback;
+
+        this.callback = (ruleKey, oldValue, newValue) -> {
+            oldCallback.onChange(ruleKey, oldValue, newValue);
+            callback.onChange(ruleKey, oldValue, newValue);
+        };
     }
 
     public static void each(Consumer<RuleKey<? extends Rule<?>>> action) {

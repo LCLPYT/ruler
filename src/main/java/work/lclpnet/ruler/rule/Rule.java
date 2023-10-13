@@ -9,4 +9,6 @@ public interface Rule<T> {
     String serialized();
 
     void deserialize(String serialized);
+
+    void changeFromInput(String input);
 }

@@ -63,7 +63,7 @@ public class RuleCommand {
         Rules rules = Ruler.getApi().getRuleManager().getRules(world);
 
         var rule = rules.getRule(key);
-        rule.deserialize(value);
+        rule.changeFromInput(value);
 
         source.sendMessage(Text.translatable("ruler.cmd.rule.updated", key.identifier(), rule.serialized()));
 
