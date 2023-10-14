@@ -1,5 +1,7 @@
 package work.lclpnet.ruler.rule.rules;
 
+import com.mojang.brigadier.suggestion.SuggestionProvider;
+import net.minecraft.server.command.ServerCommandSource;
 import work.lclpnet.ruler.rule.Rule;
 import work.lclpnet.ruler.rule.RuleFactory;
 import work.lclpnet.ruler.rule.RuleHandle;
@@ -50,6 +52,19 @@ public class BooleanRule implements Rule<Boolean> {
     }
 
     public static RuleFactory<BooleanRule> create(boolean value) {
-        return args -> new BooleanRule(args, value);
+        return new Factory(value);
+    }
+
+    private record Factory(boolean value) implements RuleFactory<BooleanRule> {
+
+        @Override
+        public BooleanRule create(RuleHandle args) {
+            return new BooleanRule(args, value);
+        }
+
+        @Override
+        public SuggestionProvider<ServerCommandSource> getSuggestions() {
+            return (context, builder) -> builder.suggest("true").suggest("false").buildFuture();
+        }
     }
 }

@@ -1,17 +1,16 @@
 package work.lclpnet.ruler.rule;
 
 import com.google.common.collect.ImmutableMap;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import work.lclpnet.ruler.rule.rules.BooleanRule;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static work.lclpnet.ruler.Ruler.identifier;
@@ -21,12 +20,14 @@ public class Rules {
     protected static final Map<RuleKey<?>, RuleFactory<?>> RULE_TYPES;
     public static final RuleKey<BooleanRule> WATER_FREEZING;
     public static final RuleKey<BooleanRule> ICE_MELTING;
+    public static final RuleKey<BooleanRule> CORAL_DEATH;
 
     static {
         RULE_TYPES = new HashMap<>();
 
         ICE_MELTING = register(identifier("ice_melting"), BooleanRule.create(true));
         WATER_FREEZING = register(identifier("water_freezing"), BooleanRule.create(true));
+        CORAL_DEATH = register(identifier("coral_death"), BooleanRule.create(true));
     }
 
     protected static <T extends Rule<?>> RuleKey<T> register(Identifier identifier, RuleFactory<T> factory) {
@@ -137,5 +138,11 @@ public class Rules {
 
     public static void each(Consumer<RuleKey<? extends Rule<?>>> action) {
         RULE_TYPES.keySet().forEach(action);
+    }
+
+    @Nullable
+    public static SuggestionProvider<ServerCommandSource> suggestions(RuleKey<? extends Rule<?>> rule) {
+        return Objects.requireNonNull(RULE_TYPES.get(rule), () -> "Unknown rule %s".formatted(rule.identifier()))
+                .getSuggestions();
     }
 }
