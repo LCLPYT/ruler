@@ -9,7 +9,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import work.lclpnet.kibu.translate.TranslationService;
 import work.lclpnet.ruler.Ruler;
 import work.lclpnet.ruler.cmd.arg.WorldSuggestionProvider;
 import work.lclpnet.ruler.rule.Rule;
@@ -18,8 +19,15 @@ import work.lclpnet.ruler.rule.Rules;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
+import static work.lclpnet.kibu.translate.text.FormatWrapper.styled;
 
 public class RuleCommand {
+
+    private final TranslationService translationService;
+
+    public RuleCommand(TranslationService translationService) {
+        this.translationService = translationService;
+    }
 
     public void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(command());
@@ -99,7 +107,10 @@ public class RuleCommand {
 
         var rule = rules.getRule(key);
 
-        source.sendMessage(Text.translatable("ruler.cmd.rule.current", key.identifier(), rule.serialized()));
+        source.sendMessage(translationService.translateText(source, "ruler.cmd.rule.current",
+                        styled(key.identifier(), Formatting.YELLOW),
+                        styled(rule.serialized(), Formatting.YELLOW))
+                .formatted(Formatting.GREEN));
 
         return 1;
     }
@@ -112,7 +123,10 @@ public class RuleCommand {
         var rule = rules.getRule(key);
         rule.changeFromInput(value);
 
-        source.sendMessage(Text.translatable("ruler.cmd.rule.updated", key.identifier(), rule.serialized()));
+        source.sendMessage(translationService.translateText(source, "ruler.cmd.rule.updated",
+                        styled(key.identifier(), Formatting.YELLOW),
+                        styled(rule.serialized(), Formatting.YELLOW))
+                .formatted(Formatting.GREEN));
 
         return 1;
     }

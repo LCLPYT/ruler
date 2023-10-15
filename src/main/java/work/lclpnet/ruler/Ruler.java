@@ -8,8 +8,7 @@ import work.lclpnet.ruler.impl.RulerApiImpl;
 
 public final class Ruler {
 
-    public static final String MOD_ID = "ruler";
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final Logger LOGGER = LoggerFactory.getLogger(RulerConstants.MOD_ID);
 
     private Ruler() {}
 
@@ -23,7 +22,7 @@ public final class Ruler {
      * @return An identifier of this mod with the given path.
      */
     public static Identifier identifier(String path) {
-        return new Identifier(MOD_ID, path);
+        return new Identifier(RulerConstants.MOD_ID, path);
     }
 
     private static class ApiHolder {
