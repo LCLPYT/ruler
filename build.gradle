@@ -80,6 +80,8 @@ jar {
 	}
 }
 
+def env = System.getenv()
+
 tasks.register("github", GithubDeploymentTask) {
     dependsOn tasks.remapJar
 
