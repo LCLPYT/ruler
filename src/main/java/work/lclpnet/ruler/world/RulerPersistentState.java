@@ -9,6 +9,9 @@ import work.lclpnet.ruler.rule.Rules;
 
 public class RulerPersistentState extends PersistentState {
 
+    private static final Type<RulerPersistentState> TYPE = new Type<>(RulerPersistentState::new,
+            RulerPersistentState::fromNbt, null);
+
     private final Rules rules;
 
     public RulerPersistentState() {
@@ -40,8 +43,7 @@ public class RulerPersistentState extends PersistentState {
     public static RulerPersistentState get(ServerWorld world) {
         PersistentStateManager manager = world.getPersistentStateManager();
 
-        RulerPersistentState state = manager.getOrCreate(RulerPersistentState::fromNbt, RulerPersistentState::new,
-                "ruler");
+        RulerPersistentState state = manager.getOrCreate(TYPE, "ruler");
 
         // write initial data to the disk
         state.markDirty();
