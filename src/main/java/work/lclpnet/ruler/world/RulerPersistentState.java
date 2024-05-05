@@ -1,6 +1,7 @@
 package work.lclpnet.ruler.world;
 
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
@@ -24,7 +25,7 @@ public class RulerPersistentState extends PersistentState {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
+    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         nbt.put(RulerConstants.RULES_KEY, rules.toNbt());
         return nbt;
     }
@@ -33,7 +34,7 @@ public class RulerPersistentState extends PersistentState {
         return rules;
     }
 
-    public static RulerPersistentState fromNbt(NbtCompound tag) {
+    public static RulerPersistentState fromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         Rules rules = new Rules();
         rules.load(tag.getCompound(RulerConstants.RULES_KEY));
 
