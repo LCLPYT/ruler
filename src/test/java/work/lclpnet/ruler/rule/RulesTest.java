@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RulesTest {
 
-    private static final RuleKey<TestRule> TEST_RULE = Rules.register(new Identifier("ruler", "test"),
+    private static final RuleKey<TestRule> TEST_RULE = Rules.register(Identifier.of("ruler", "test"),
             TestRule::new);
 
     @Test
@@ -35,7 +35,7 @@ class RulesTest {
     @Test
     void getRule_missing_throws() {
         Rules rules = new Rules();
-        var key = new RuleKey<>(new Identifier("test", "test"));
+        var key = new RuleKey<>(Identifier.of("test", "test"));
 
         String msg = "Rule of type %s not registered".formatted(key.identifier());
         assertThrows(NullPointerException.class, () -> rules.getRule(key), msg);

@@ -22,7 +22,7 @@ public final class Ruler {
      * @return An identifier of this mod with the given path.
      */
     public static Identifier identifier(String path) {
-        return new Identifier(RulerConstants.MOD_ID, path);
+        return Identifier.of(RulerConstants.MOD_ID, path);
     }
 
     private static class ApiHolder {
