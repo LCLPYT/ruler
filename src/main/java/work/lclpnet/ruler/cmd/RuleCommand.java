@@ -10,7 +10,7 @@ import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Formatting;
-import work.lclpnet.kibu.translate.TranslationService;
+import work.lclpnet.kibu.translate.Translations;
 import work.lclpnet.ruler.Ruler;
 import work.lclpnet.ruler.cmd.arg.WorldSuggestionProvider;
 import work.lclpnet.ruler.rule.Rule;
@@ -23,9 +23,9 @@ import static work.lclpnet.kibu.translate.text.FormatWrapper.styled;
 
 public class RuleCommand {
 
-    private final TranslationService translationService;
+    private final Translations translationService;
 
-    public RuleCommand(TranslationService translationService) {
+    public RuleCommand(Translations translationService) {
         this.translationService = translationService;
     }
 
