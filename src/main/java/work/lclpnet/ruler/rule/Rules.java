@@ -17,18 +17,14 @@ import static work.lclpnet.ruler.Ruler.identifier;
 
 public class Rules {
 
-    protected static final Map<RuleKey<?>, RuleFactory<?>> RULE_TYPES;
-    public static final RuleKey<BooleanRule> WATER_FREEZING;
-    public static final RuleKey<BooleanRule> ICE_MELTING;
-    public static final RuleKey<BooleanRule> CORAL_DEATH;
+    protected static final Map<RuleKey<?>, RuleFactory<?>> RULE_TYPES = new HashMap<>();
 
-    static {
-        RULE_TYPES = new HashMap<>();
-
-        ICE_MELTING = register(identifier("ice_melting"), BooleanRule.create(true));
-        WATER_FREEZING = register(identifier("water_freezing"), BooleanRule.create(true));
-        CORAL_DEATH = register(identifier("coral_death"), BooleanRule.create(true));
-    }
+    public static final RuleKey<BooleanRule>
+            WATER_FREEZING = register(identifier("water_freezing"), BooleanRule.create(true)),
+            ICE_MELTING = register(identifier("ice_melting"), BooleanRule.create(true)),
+            CORAL_DEATH = register(identifier("coral_death"), BooleanRule.create(true)),
+            FARMLAND_TRAMPLING = register(identifier("farmland_trampling"), BooleanRule.create(true)),
+            TURTLE_EGG_TRAMPLING = register(identifier("turtle_egg_trampling"), BooleanRule.create(true));
 
     protected static <T extends Rule<?>> RuleKey<T> register(Identifier identifier, RuleFactory<T> factory) {
         var key = new RuleKey<T>(identifier);

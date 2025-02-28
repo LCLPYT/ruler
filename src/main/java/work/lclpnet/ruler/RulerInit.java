@@ -16,11 +16,10 @@ public class RulerInit implements ModInitializer {
 
 		translation.whenLoaded().thenRun(() -> Ruler.LOGGER.info("Ruler translations loaded."));
 
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-			new RuleCommand(translationService).register(dispatcher);
-		});
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment)
+				-> new RuleCommand(translationService).register(dispatcher));
 
-		WorldListener.register();
+		new WorldListener(Ruler.getApi().getRuleManager()).register();
 
 		Ruler.LOGGER.info("Initialized.");
 	}

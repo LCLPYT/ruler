@@ -29,8 +29,10 @@ If you want to modify or query the rules of a different dimension, you can pass 
 
 ## List of rules
 
-| Rule                   | Default value | Description                                       |
-|------------------------|---------------|---------------------------------------------------|
-| `ruler:ice_melting`    | `true`        | Controls whether ice can melt or not.             |
-| `ruler:water_freezing` | `true`        | Controls whether water can freeze.                |
-| `ruler:coral_death`    | `true`        | Controls whether corals will die outside of water |
+| Rule                         | Default value | Description                                             |
+|------------------------------|---------------|---------------------------------------------------------|
+| `ruler:ice_melting`          | `true`        | Whether ice can melt.                                   |
+| `ruler:water_freezing`       | `true`        | Whether water can freeze in cold regions.               |
+| `ruler:coral_death`          | `true`        | Whether corals will die outside of water                |
+| `ruler:farmland_trampling`   | `true`        | Whether farmland can be destroyed by jumping on it      |
+| `ruler:turtle_egg_trampling` | `true`        | Whether turtle eggs can be destroyed by jumping on them |
