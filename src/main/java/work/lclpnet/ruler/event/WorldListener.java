@@ -1,8 +1,10 @@
 package work.lclpnet.ruler.event;
 
+import net.minecraft.block.FarmlandBlock;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
 import work.lclpnet.kibu.hook.world.BlockModificationHooks;
+import work.lclpnet.kibu.hook.world.FarmlandMoistureChangeCallback;
 import work.lclpnet.kibu.hook.world.WorldPhysicsHooks;
 import work.lclpnet.ruler.api.RuleManager;
 import work.lclpnet.ruler.rule.RuleKey;
@@ -23,6 +25,9 @@ public class WorldListener {
         WorldPhysicsHooks.CORAL_DEATH.register((world, pos) -> shouldCancel(world, Rules.CORAL_DEATH));
         BlockModificationHooks.TRAMPLE_FARMLAND.register((world, pos, entity) -> shouldCancel(world, Rules.FARMLAND_TRAMPLING));
         BlockModificationHooks.TRAMPLE_TURTLE_EGG.register((world, pos, entity) -> shouldCancel(world, Rules.TURTLE_EGG_TRAMPLING));
+        FarmlandMoistureChangeCallback.HOOK.register((serverWorld, blockPos, moisture)
+                -> moisture < serverWorld.getBlockState(blockPos).get(FarmlandBlock.MOISTURE)
+                && shouldCancel(serverWorld, Rules.FARMLAND_DRY_OUT));
     }
 
     private boolean shouldCancel(World world, RuleKey<BooleanRule> rule) {

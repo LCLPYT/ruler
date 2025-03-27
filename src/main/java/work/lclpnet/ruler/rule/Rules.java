@@ -24,7 +24,8 @@ public class Rules {
             ICE_MELTING = register(identifier("ice_melting"), BooleanRule.create(true)),
             CORAL_DEATH = register(identifier("coral_death"), BooleanRule.create(true)),
             FARMLAND_TRAMPLING = register(identifier("farmland_trampling"), BooleanRule.create(true)),
-            TURTLE_EGG_TRAMPLING = register(identifier("turtle_egg_trampling"), BooleanRule.create(true));
+            TURTLE_EGG_TRAMPLING = register(identifier("turtle_egg_trampling"), BooleanRule.create(true)),
+            FARMLAND_DRY_OUT = register(identifier("farmland_dry_out"), BooleanRule.create(true));
 
     protected static <T extends Rule<?>> RuleKey<T> register(Identifier identifier, RuleFactory<T> factory) {
         var key = new RuleKey<T>(identifier);
