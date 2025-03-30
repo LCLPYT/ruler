@@ -22,13 +22,7 @@
 			"work.lclpnet.ruler.RulerClientInit"
 		]
 	},
-	"mixins": [
-		"ruler.mixins.json",
-		{
-			"config": "ruler.client.mixins.json",
-			"environment": "client"
-		}
-	],
+	"mixins": [],
 	"depends": {
 		"fabricloader": ">=0.15.11",
 		"minecraft": "~1.21",

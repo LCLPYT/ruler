@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RulesTest {
 
-    private static final RuleKey<TestRule> TEST_RULE = Rules.register(Identifier.of("ruler", "test"),
+    private static final RuleKey<String, TestRule> TEST_RULE = Rules.register(Identifier.of("ruler", "test"),
             TestRule::new);
 
     @Test
@@ -43,12 +43,12 @@ class RulesTest {
 
     @ParameterizedTest
     @MethodSource("keys")
-    <T, R extends Rule<T>> void get_default_defaultValue(RuleKey<R> key) {
+    <T, R extends Rule<T>> void get_default_defaultValue(RuleKey<T, R> key) {
         var rules = new Rules();
         T actual = rules.get(key);
 
-        RuleHandle handle = (oldValue, newValue) -> {};
-        var expected = Rules.RULE_TYPES.get(key).create(handle).get();
+        RuleHandle<T> handle = (oldValue, newValue) -> {};
+        var expected = Rules.RULE_TYPES.get(key).create(RuleHandle.cast(handle)).get();
         assertEquals(expected, actual);
     }
 
@@ -66,8 +66,8 @@ class RulesTest {
         var rules = new Rules();
 
         @SuppressWarnings("unchecked")
-        var ruleFactory = (RuleFactory<BooleanRule>) Rules.RULE_TYPES.get(Rules.ICE_MELTING);
-        RuleHandle handle = (oldValue, newValue) -> {};
+        var ruleFactory = (RuleFactory<Boolean, BooleanRule>) Rules.RULE_TYPES.get(Rules.ICE_MELTING);
+        RuleHandle<Boolean> handle = (oldValue, newValue) -> {};
 
         boolean expected = !ruleFactory.create(handle).getBoolean();
 
@@ -112,10 +112,10 @@ class RulesTest {
 
         NbtCompound nbt = new NbtCompound();
 
-        RuleHandle handle = (oldValue, newValue) -> {};
+        RuleHandle<Boolean> handle = (oldValue, newValue) -> {};
 
         @SuppressWarnings("unchecked")
-        boolean def = ((RuleFactory<BooleanRule>) Rules.RULE_TYPES.get(rule)).create(handle).getBoolean();
+        boolean def = ((RuleFactory<Boolean, BooleanRule>) Rules.RULE_TYPES.get(rule)).create(handle).getBoolean();
 
         nbt.putString(rule.identifier().toString(), Boolean.toString(!def));
 
@@ -172,16 +172,16 @@ class RulesTest {
         assertTrue(called2.get());
     }
 
-    private static Stream<RuleKey<?>> keys() {
+    private static Stream<RuleKey<?, ?>> keys() {
         return Rules.RULE_TYPES.keySet().stream();
     }
 
     private static class TestRule implements Rule<String> {
 
-        private final RuleHandle handle;
+        private final RuleHandle<String> handle;
         private String value = "test";
 
-        public TestRule(RuleHandle handle) {
+        public TestRule(RuleHandle<String> handle) {
             this.handle = handle;
         }
 

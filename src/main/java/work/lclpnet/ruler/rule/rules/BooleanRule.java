@@ -8,11 +8,11 @@ import work.lclpnet.ruler.rule.RuleHandle;
 
 public class BooleanRule implements Rule<Boolean> {
 
-    private final RuleHandle args;
+    private final RuleHandle<Boolean> handle;
     private boolean value;
 
-    public BooleanRule(RuleHandle args, boolean initialValue) {
-        this.args = args;
+    public BooleanRule(RuleHandle<Boolean> handle, boolean initialValue) {
+        this.handle = handle;
         this.value = initialValue;
     }
 
@@ -48,18 +48,18 @@ public class BooleanRule implements Rule<Boolean> {
     public void setBoolean(boolean value) {
         boolean old = this.value;
         this.value = value;
-        args.onChange(old, this.value);
+        handle.onChange(old, this.value);
     }
 
-    public static RuleFactory<BooleanRule> create(boolean value) {
+    public static RuleFactory<Boolean, BooleanRule> create(boolean value) {
         return new Factory(value);
     }
 
-    private record Factory(boolean value) implements RuleFactory<BooleanRule> {
+    private record Factory(boolean value) implements RuleFactory<Boolean, BooleanRule> {
 
         @Override
-        public BooleanRule create(RuleHandle args) {
-            return new BooleanRule(args, value);
+        public BooleanRule create(RuleHandle<Boolean> handle) {
+            return new BooleanRule(handle, value);
         }
 
         @Override
