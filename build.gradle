@@ -28,6 +28,7 @@ dependencies {
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "work.lclpnet.mods.kibu:kibu:${project.kibu_version}"
+    include(modImplementation("me.lucko:fabric-permissions-api:${project.permission_api_version}"))
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
     testImplementation "org.junit.jupiter:junit-jupiter-params:5.9.2"

@@ -13,13 +13,14 @@ import net.minecraft.util.Formatting;
 import work.lclpnet.kibu.translate.Translations;
 import work.lclpnet.ruler.Ruler;
 import work.lclpnet.ruler.cmd.arg.WorldSuggestionProvider;
-import work.lclpnet.ruler.rule.Rule;
 import work.lclpnet.ruler.rule.RuleKey;
 import work.lclpnet.ruler.rule.Rules;
 
+import static me.lucko.fabric.api.permissions.v0.Permissions.require;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 import static work.lclpnet.kibu.translate.text.FormatWrapper.styled;
+import static work.lclpnet.ruler.Ruler.permission;
 
 public class RuleCommand {
 
@@ -34,8 +35,11 @@ public class RuleCommand {
     }
 
     private LiteralArgumentBuilder<ServerCommandSource> command() {
-        var set = literal("set");
-        var get = literal("get");
+        var set = literal("set")
+                    .requires(require(permission("command.rule.set"), 2));
+
+        var get = literal("get")
+                    .requires(require(permission("command.rule.get"), 2));
 
         WorldSuggestionProvider dimensions = new WorldSuggestionProvider();
 
@@ -51,9 +55,11 @@ public class RuleCommand {
             suggestValues(valueArg, ruleKey);
 
             set.then(literal(id)
+                    .requires(require(permission("command.rule.set." + id), 2))
                     .then(valueArg));
 
             get.then(literal(id)
+                    .requires(require(permission("command.rule.get." + id), 2))
                     .executes(ctx -> getRuleValue(ctx, ruleKey))
                     .then(argument("dimension", IdentifierArgumentType.identifier())
                             .suggests(dimensions)
@@ -61,7 +67,7 @@ public class RuleCommand {
         });
 
         return literal("rule")
-                .requires(s -> s.hasPermissionLevel(2))
+                .requires(require(permission("command.rule"), 2))
                 .then(set)
                 .then(get);
     }

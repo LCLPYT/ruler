@@ -6,9 +6,11 @@ import org.slf4j.LoggerFactory;
 import work.lclpnet.ruler.api.RulerApi;
 import work.lclpnet.ruler.impl.RulerApiImpl;
 
+import static work.lclpnet.ruler.RulerConstants.MOD_ID;
+
 public final class Ruler {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(RulerConstants.MOD_ID);
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     private Ruler() {}
 
@@ -22,7 +24,11 @@ public final class Ruler {
      * @return An identifier of this mod with the given path.
      */
     public static Identifier identifier(String path) {
-        return Identifier.of(RulerConstants.MOD_ID, path);
+        return Identifier.of(MOD_ID, path);
+    }
+
+    public static String permission(String suffix) {
+        return MOD_ID + "." + suffix;
     }
 
     private static class ApiHolder {
