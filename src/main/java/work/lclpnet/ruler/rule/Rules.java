@@ -17,9 +17,9 @@ import static work.lclpnet.ruler.Ruler.identifier;
 
 public class Rules {
 
-    protected static final Map<RuleKey<?, ?>, RuleFactory<?, ?>> RULE_TYPES = new HashMap<>();
+    protected static final Map<RuleKey<?>, RuleFactory<?, ?>> RULE_TYPES = new HashMap<>();
 
-    public static final RuleKey<Boolean, BooleanRule>
+    public static final RuleKey<Boolean>
             WATER_FREEZING = register(identifier("water_freezing"), BooleanRule.create(true)),
             ICE_MELTING = register(identifier("ice_melting"), BooleanRule.create(true)),
             CORAL_DEATH = register(identifier("coral_death"), BooleanRule.create(true)),
@@ -28,16 +28,16 @@ public class Rules {
             FARMLAND_DRY_OUT = register(identifier("farmland_dry_out"), BooleanRule.create(true)),
             FLUID_FLOW = register(identifier("fluid_flow"), BooleanRule.create(true));
 
-    protected static <V, T extends Rule<V>> RuleKey<V, T> register(Identifier identifier, RuleFactory<V, T> factory) {
-        var key = new RuleKey<V, T>(identifier);
+    protected static <V, R extends Rule<V>> RuleKey<V> register(Identifier identifier, RuleFactory<V, R> factory) {
+        var key = new RuleKey<V>(identifier);
 
         RULE_TYPES.put(key, factory);
 
         return key;
     }
 
-    private final Map<RuleKey<?, ?>, Rule<?>> rules;
-    private final Map<RuleKey<?, ?>, RuleChangeCallback<?>> callbacks = new HashMap<>();
+    private final Map<RuleKey<?>, Rule<?>> rules;
+    private final Map<RuleKey<?>, RuleChangeCallback<?>> callbacks = new HashMap<>();
     @Nullable
     private GlobalRuleChangeCallback globalCallback;
 
@@ -48,7 +48,7 @@ public class Rules {
     public Rules(@Nullable GlobalRuleChangeCallback globalCallback) {
         rules = RULE_TYPES.entrySet()
                 .stream()
-                .collect(ImmutableMap.<Map.Entry<RuleKey<?, ?>, RuleFactory<?, ?>>, RuleKey<?, ?>, Rule<?>>toImmutableMap(
+                .collect(ImmutableMap.<Map.Entry<RuleKey<?>, RuleFactory<?, ?>>, RuleKey<?>, Rule<?>>toImmutableMap(
                         Map.Entry::getKey,
                         e -> {
                             var handle = e.getKey().cast((oldValue, newValue) -> this.changed(e.getKey(), oldValue, newValue));
@@ -62,35 +62,25 @@ public class Rules {
 
     @SuppressWarnings("unchecked")
     @NotNull
-    public <V, T extends Rule<V>> T getRule(RuleKey<V, T> key) {
+    public <V> Rule<V> getRule(RuleKey<V> key) {
         Rule<?> rule = rules.get(key);
 
         if (rule == null) {
             throw new NullPointerException("Rule of type %s not registered".formatted(key.identifier()));
         }
 
-        return (T) rule;
+        return (Rule<V>) rule;
     }
 
-    public <V, T extends Rule<V>> V get(RuleKey<V, T> key) {
+    public <V> V get(RuleKey<V> key) {
         return getRule(key).get();
     }
 
-    public <T> void set(RuleKey<T, ? extends Rule<T>> key, T value) {
+    public <V> void set(RuleKey<V> key, V value) {
         getRule(key).set(value);
     }
 
-    public boolean getBoolean(RuleKey<Boolean, BooleanRule> key) {
-        BooleanRule rule = getRule(key);
-        return rule.getBoolean();
-    }
-
-    public void set(RuleKey<Boolean, BooleanRule> key, boolean value) {
-        BooleanRule rule = getRule(key);
-        rule.setBoolean(value);
-    }
-
-    public Set<RuleKey<?, ?>> rules() {
+    public Set<RuleKey<?>> rules() {
         return Collections.unmodifiableSet(rules.keySet());
     }
 
@@ -115,7 +105,7 @@ public class Rules {
     }
 
     @SuppressWarnings("unchecked")
-    private <V, T extends Rule<V>> void changed(RuleKey<V, T> rule, Object oldValue, Object newValue) {
+    private <V, T extends Rule<V>> void changed(RuleKey<V> rule, Object oldValue, Object newValue) {
         if (globalCallback != null) {
             globalCallback.onChange(rule, oldValue, newValue);
         }
@@ -143,7 +133,7 @@ public class Rules {
     }
 
     @SuppressWarnings("unchecked")
-    public <V, T extends Rule<V>> void whenChanged(RuleKey<V, T> rule, RuleChangeCallback<V> callback) {
+    public <V> void whenChanged(RuleKey<V> rule, RuleChangeCallback<V> callback) {
         callbacks.compute(rule, (ruleKey, oldCallback) -> {
             if (oldCallback == null) {
                 return callback;
@@ -156,12 +146,12 @@ public class Rules {
         });
     }
 
-    public static void each(Consumer<RuleKey<?, ? extends Rule<?>>> action) {
+    public static void each(Consumer<RuleKey<?>> action) {
         RULE_TYPES.keySet().forEach(action);
     }
 
     @Nullable
-    public static SuggestionProvider<ServerCommandSource> suggestions(RuleKey<?, ? extends Rule<?>> rule) {
+    public static SuggestionProvider<ServerCommandSource> suggestions(RuleKey<?> rule) {
         return Objects.requireNonNull(RULE_TYPES.get(rule), () -> "Unknown rule %s".formatted(rule.identifier()))
                 .getSuggestions();
     }
@@ -171,6 +161,6 @@ public class Rules {
     }
 
     public interface GlobalRuleChangeCallback {
-        void onChange(RuleKey<?, ?> ruleKey, Object oldValue, Object newValue);
+        void onChange(RuleKey<?> ruleKey, Object oldValue, Object newValue);
     }
 }

@@ -38,11 +38,11 @@ public class WorldListener {
             rules.whenChanged(Rules.FLUID_FLOW, (oldValue, newValue)
                     -> ServerWorldBehaviour.setFluidTicksEnabled(world, newValue));
 
-            ServerWorldBehaviour.setFluidTicksEnabled(world, rules.getBoolean(Rules.FLUID_FLOW));
+            ServerWorldBehaviour.setFluidTicksEnabled(world, rules.get(Rules.FLUID_FLOW));
         });
     }
 
-    private boolean shouldCancel(World world, RuleKey<Boolean, BooleanRule> rule) {
-        return world instanceof ServerWorld serverWorld && !ruleManager.getRules(serverWorld).getBoolean(rule);
+    private boolean shouldCancel(World world, RuleKey<Boolean> rule) {
+        return world instanceof ServerWorld serverWorld && !ruleManager.getRules(serverWorld).get(rule);
     }
 }

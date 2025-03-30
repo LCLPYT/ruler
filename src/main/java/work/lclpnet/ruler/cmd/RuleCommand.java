@@ -66,7 +66,7 @@ public class RuleCommand {
                 .then(get);
     }
 
-    private void suggestValues(RequiredArgumentBuilder<ServerCommandSource, String> argument, RuleKey<?, ? extends Rule<?>> ruleKey) {
+    private void suggestValues(RequiredArgumentBuilder<ServerCommandSource, String> argument, RuleKey<?> ruleKey) {
         var suggestions = Rules.suggestions(ruleKey);
 
         if (suggestions != null) {
@@ -74,33 +74,33 @@ public class RuleCommand {
         }
     }
 
-    private int getRuleValue(CommandContext<ServerCommandSource> ctx, RuleKey<?, ?> key) {
+    private int getRuleValue(CommandContext<ServerCommandSource> ctx, RuleKey<?> key) {
         ServerWorld world = ctx.getSource().getWorld();
 
         return getRule(ctx, key, world);
     }
 
-    private int getDimensionRuleValue(CommandContext<ServerCommandSource> ctx, RuleKey<?, ?> key) throws CommandSyntaxException {
+    private int getDimensionRuleValue(CommandContext<ServerCommandSource> ctx, RuleKey<?> key) throws CommandSyntaxException {
         ServerWorld world = WorldSuggestionProvider.getWorld(ctx, "dimension");
 
         return getRule(ctx, key, world);
     }
 
-    private int setRuleValue(CommandContext<ServerCommandSource> ctx, RuleKey<?, ?> key) {
+    private int setRuleValue(CommandContext<ServerCommandSource> ctx, RuleKey<?> key) {
         String value = StringArgumentType.getString(ctx, "value");
         ServerWorld world = ctx.getSource().getWorld();
 
         return setRule(ctx, key, world, value);
     }
 
-    private int setDimensionRuleValue(CommandContext<ServerCommandSource> ctx, RuleKey<?, ?> key) throws CommandSyntaxException {
+    private int setDimensionRuleValue(CommandContext<ServerCommandSource> ctx, RuleKey<?> key) throws CommandSyntaxException {
         String value = StringArgumentType.getString(ctx, "value");
         ServerWorld world = WorldSuggestionProvider.getWorld(ctx, "dimension");
 
         return setRule(ctx, key, world, value);
     }
 
-    private int getRule(CommandContext<ServerCommandSource> ctx, RuleKey<?, ?> key, ServerWorld world) {
+    private int getRule(CommandContext<ServerCommandSource> ctx, RuleKey<?> key, ServerWorld world) {
         ServerCommandSource source = ctx.getSource();
 
         Rules rules = Ruler.getApi().getRuleManager().getRules(world);
@@ -115,7 +115,7 @@ public class RuleCommand {
         return 1;
     }
 
-    private int setRule(CommandContext<ServerCommandSource> ctx, RuleKey<?, ?> key, ServerWorld world, String value) {
+    private int setRule(CommandContext<ServerCommandSource> ctx, RuleKey<?> key, ServerWorld world, String value) {
         ServerCommandSource source = ctx.getSource();
 
         Rules rules = Ruler.getApi().getRuleManager().getRules(world);

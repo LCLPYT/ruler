@@ -4,9 +4,9 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.server.command.ServerCommandSource;
 import org.jetbrains.annotations.Nullable;
 
-public interface RuleFactory<V, T extends Rule<V>> {
+public interface RuleFactory<V, R extends Rule<V>> {
 
-    T create(RuleHandle<V> args);
+    R create(RuleHandle<V> args);
 
     @Nullable
     default SuggestionProvider<ServerCommandSource> getSuggestions() {

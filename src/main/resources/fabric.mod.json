@@ -3,7 +3,7 @@
 	"id": "ruler",
 	"version": "${version}",
 	"name": "Ruler",
-	"description": "A Fabric mod for configuring rules for your Minecraft world. ",
+	"description": "A Fabric mod for configuring rules for your Minecraft world.",
 	"authors": [
 		"LCLP"
 	],
@@ -17,18 +17,15 @@
 	"entrypoints": {
 		"main": [
           "work.lclpnet.ruler.RulerInit"
-		],
-		"client": [
-			"work.lclpnet.ruler.RulerClientInit"
 		]
 	},
 	"mixins": [],
 	"depends": {
-		"fabricloader": ">=0.15.11",
-		"minecraft": "~1.21",
+		"fabricloader": ">=0.16.9",
+		"minecraft": "~1.21.4",
 		"java": ">=21",
 		"fabric-api": "*",
-		"kibu": ">=0.117.0"
+		"kibu": ">=0.144.0"
 	},
 	"suggests": {}
 }

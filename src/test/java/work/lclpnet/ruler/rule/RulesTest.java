@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RulesTest {
 
-    private static final RuleKey<String, TestRule> TEST_RULE = Rules.register(Identifier.of("ruler", "test"),
-            TestRule::new);
+    private static final RuleKey<String> TEST_RULE = Rules.register(Identifier.of("ruler", "test"),
+            TestStringRule::new);
 
     @Test
     void rules_default_equals() {
@@ -43,11 +43,11 @@ class RulesTest {
 
     @ParameterizedTest
     @MethodSource("keys")
-    <T, R extends Rule<T>> void get_default_defaultValue(RuleKey<T, R> key) {
+    <V, R extends Rule<V>> void get_default_defaultValue(RuleKey<V> key) {
         var rules = new Rules();
-        T actual = rules.get(key);
+        V actual = rules.get(key);
 
-        RuleHandle<T> handle = (oldValue, newValue) -> {};
+        RuleHandle<V> handle = (oldValue, newValue) -> {};
         var expected = Rules.RULE_TYPES.get(key).create(RuleHandle.cast(handle)).get();
         assertEquals(expected, actual);
     }
@@ -77,10 +77,10 @@ class RulesTest {
     }
 
     @Test
-    void getBoolean_default_defaultValue() {
+    void get_default_defaultValue() {
         var rules = new Rules();
 
-        assertTrue(rules.getBoolean(Rules.ICE_MELTING));
+        assertTrue(rules.get(Rules.ICE_MELTING));
     }
 
     @Test
@@ -172,16 +172,16 @@ class RulesTest {
         assertTrue(called2.get());
     }
 
-    private static Stream<RuleKey<?, ?>> keys() {
+    private static Stream<RuleKey<?>> keys() {
         return Rules.RULE_TYPES.keySet().stream();
     }
 
-    private static class TestRule implements Rule<String> {
+    private static class TestStringRule implements Rule<String> {
 
         private final RuleHandle<String> handle;
         private String value = "test";
 
-        public TestRule(RuleHandle<String> handle) {
+        public TestStringRule(RuleHandle<String> handle) {
             this.handle = handle;
         }
 
