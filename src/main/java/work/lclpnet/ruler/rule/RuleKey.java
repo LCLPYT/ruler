@@ -19,11 +19,11 @@ public interface RuleKey<V, R extends Rule<V>> {
     default Codec<Value<V>> valueWrapperCodec() {
         var valueCodec = valueCodec();
         
-        return valueCodec.xmap(v -> new Value<>(v, valueCodec), Value::value);
+        return valueCodec.xmap(Value::new, Value::value);
     }
     
     default Value<V> wrappedDefaultValue() {
-        return new Value<>(defaultValue(), valueCodec());
+        return new Value<>(defaultValue());
     }
 
     @Nullable
@@ -36,5 +36,5 @@ public interface RuleKey<V, R extends Rule<V>> {
         return (RuleHandle<V>) handle;
     }
 
-    record Value<V>(V value, Codec<V> codec) {}
+    record Value<V>(V value) {}
 }

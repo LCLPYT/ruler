@@ -174,7 +174,7 @@ public class Rules {
         }
 
         public RuleKey.Value<V> wrapValue() {
-            return new RuleKey.Value<>(value, factory.valueCodec());
+            return new RuleKey.Value<>(value);
         }
 
         public R createRule(RuleHandle<Object> handle) {
