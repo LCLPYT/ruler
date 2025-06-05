@@ -9,9 +9,9 @@ import work.lclpnet.kibu.hook.world.FarmlandMoistureChangeCallback;
 import work.lclpnet.kibu.hook.world.ServerWorldHooks;
 import work.lclpnet.kibu.hook.world.WorldPhysicsHooks;
 import work.lclpnet.ruler.api.RuleManager;
+import work.lclpnet.ruler.rule.BuiltinRules;
 import work.lclpnet.ruler.rule.RuleKey;
 import work.lclpnet.ruler.rule.Rules;
-import work.lclpnet.ruler.rule.rules.BooleanRule;
 
 public class WorldListener {
 
@@ -22,27 +22,27 @@ public class WorldListener {
     }
 
     public void register() {
-        WorldPhysicsHooks.MELT.register((world, pos) -> shouldCancel(world, Rules.ICE_MELTING));
-        WorldPhysicsHooks.FREEZE.register((world, pos) -> shouldCancel(world, Rules.WATER_FREEZING));
-        WorldPhysicsHooks.CORAL_DEATH.register((world, pos) -> shouldCancel(world, Rules.CORAL_DEATH));
-        BlockModificationHooks.TRAMPLE_FARMLAND.register((world, pos, entity) -> shouldCancel(world, Rules.FARMLAND_TRAMPLING));
-        BlockModificationHooks.TRAMPLE_TURTLE_EGG.register((world, pos, entity) -> shouldCancel(world, Rules.TURTLE_EGG_TRAMPLING));
+        WorldPhysicsHooks.MELT.register((world, pos) -> shouldCancel(world, BuiltinRules.ICE_MELTING));
+        WorldPhysicsHooks.FREEZE.register((world, pos) -> shouldCancel(world, BuiltinRules.WATER_FREEZING));
+        WorldPhysicsHooks.CORAL_DEATH.register((world, pos) -> shouldCancel(world, BuiltinRules.CORAL_DEATH));
+        BlockModificationHooks.TRAMPLE_FARMLAND.register((world, pos, entity) -> shouldCancel(world, BuiltinRules.FARMLAND_TRAMPLING));
+        BlockModificationHooks.TRAMPLE_TURTLE_EGG.register((world, pos, entity) -> shouldCancel(world, BuiltinRules.TURTLE_EGG_TRAMPLING));
 
         FarmlandMoistureChangeCallback.HOOK.register((serverWorld, blockPos, moisture)
                 -> moisture < serverWorld.getBlockState(blockPos).get(FarmlandBlock.MOISTURE)
-                && shouldCancel(serverWorld, Rules.FARMLAND_DRY_OUT));
+                && shouldCancel(serverWorld, BuiltinRules.FARMLAND_DRY_OUT));
 
         ServerWorldHooks.LOAD.register((server, world) -> {
             Rules rules = ruleManager.getRules(world);
 
-            rules.whenChanged(Rules.FLUID_FLOW, (oldValue, newValue)
+            rules.whenChanged(BuiltinRules.FLUID_FLOW, (oldValue, newValue)
                     -> ServerWorldBehaviour.setFluidTicksEnabled(world, newValue));
 
-            ServerWorldBehaviour.setFluidTicksEnabled(world, rules.get(Rules.FLUID_FLOW));
+            ServerWorldBehaviour.setFluidTicksEnabled(world, rules.get(BuiltinRules.FLUID_FLOW));
         });
     }
 
-    private boolean shouldCancel(World world, RuleKey<Boolean> rule) {
+    private boolean shouldCancel(World world, RuleKey<Boolean, ?> rule) {
         return world instanceof ServerWorld serverWorld && !ruleManager.getRules(serverWorld).get(rule);
     }
 }

@@ -6,9 +6,5 @@ public interface Rule<T> {
 
     void set(T value);
 
-    String serialized();
-
-    void deserialize(String serialized);
-
     void changeFromInput(String input);
 }

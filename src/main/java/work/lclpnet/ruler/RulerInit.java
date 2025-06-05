@@ -6,6 +6,7 @@ import work.lclpnet.kibu.translate.Translations;
 import work.lclpnet.kibu.translate.util.ModTranslations;
 import work.lclpnet.ruler.cmd.RuleCommand;
 import work.lclpnet.ruler.event.WorldListener;
+import work.lclpnet.ruler.rule.BuiltinRules;
 
 public class RulerInit implements ModInitializer {
 
@@ -15,6 +16,8 @@ public class RulerInit implements ModInitializer {
 		Translations translationService = translation.translations();
 
 		translation.whenLoaded().thenRun(() -> Ruler.LOGGER.info("Ruler translations loaded."));
+
+		BuiltinRules.initialize();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment)
 				-> new RuleCommand(translationService).register(dispatcher));

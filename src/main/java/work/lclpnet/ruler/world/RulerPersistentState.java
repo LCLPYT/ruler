@@ -1,17 +1,26 @@
 package work.lclpnet.ruler.world;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
+import net.minecraft.world.PersistentStateType;
 import work.lclpnet.ruler.RulerConstants;
+import work.lclpnet.ruler.RulerInit;
+import work.lclpnet.ruler.api.RulerApi;
 import work.lclpnet.ruler.rule.Rules;
 
 public class RulerPersistentState extends PersistentState {
 
-    private static final Type<RulerPersistentState> TYPE = new Type<>(RulerPersistentState::new,
-            RulerPersistentState::fromNbt, null);
+    private static final Codec<RulerPersistentState> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Rules.CODEC.fieldOf(RulerConstants.RULES_KEY).forGetter(RulerPersistentState::getRules)
+    ).apply(instance, RulerPersistentState::new));
+
+    private static final PersistentStateType<RulerPersistentState> TYPE = new PersistentStateType<>(
+            RulerConstants.MOD_ID, RulerPersistentState::new, CODEC, null);
 
     private final Rules rules;
 
@@ -24,27 +33,12 @@ public class RulerPersistentState extends PersistentState {
         this.rules.whenChanged((ruleKey, oldValue, newValue) -> markDirty());
     }
 
-    @Override
-    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        nbt.put(RulerConstants.RULES_KEY, rules.toNbt());
-        return nbt;
-    }
-
     public Rules getRules() {
         return rules;
     }
 
-    public static RulerPersistentState fromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        Rules rules = new Rules();
-        rules.load(tag.getCompound(RulerConstants.RULES_KEY));
-
-        return new RulerPersistentState(rules);
-    }
-
     public static RulerPersistentState get(ServerWorld world) {
-        PersistentStateManager manager = world.getPersistentStateManager();
-
-        RulerPersistentState state = manager.getOrCreate(TYPE, "ruler");
+        RulerPersistentState state = world.getPersistentStateManager().getOrCreate(TYPE);
 
         // write initial data to the disk
         state.markDirty();

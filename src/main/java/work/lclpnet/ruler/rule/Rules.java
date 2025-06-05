@@ -1,111 +1,114 @@
 package work.lclpnet.ruler.rule;
 
 import com.google.common.collect.ImmutableMap;
-import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.server.command.ServerCommandSource;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.Lifecycle;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.SimpleRegistry;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import work.lclpnet.ruler.rule.rules.BooleanRule;
+import work.lclpnet.ruler.Ruler;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
-
-import static work.lclpnet.ruler.Ruler.identifier;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Rules {
 
-    protected static final Map<RuleKey<?>, RuleFactory<?, ?>> RULE_TYPES = new HashMap<>();
+    private static final Registry<RuleKey<?, ?>> RULE_REGISTRY = new SimpleRegistry<>(
+            RegistryKey.ofRegistry(Ruler.identifier("rules")),
+            Lifecycle.stable()
+    );
 
-    public static final RuleKey<Boolean>
-            WATER_FREEZING = register(identifier("water_freezing"), BooleanRule.create(true)),
-            ICE_MELTING = register(identifier("ice_melting"), BooleanRule.create(true)),
-            CORAL_DEATH = register(identifier("coral_death"), BooleanRule.create(true)),
-            FARMLAND_TRAMPLING = register(identifier("farmland_trampling"), BooleanRule.create(true)),
-            TURTLE_EGG_TRAMPLING = register(identifier("turtle_egg_trampling"), BooleanRule.create(true)),
-            FARMLAND_DRY_OUT = register(identifier("farmland_dry_out"), BooleanRule.create(true)),
-            FLUID_FLOW = register(identifier("fluid_flow"), BooleanRule.create(true));
+    private static final Codec<RuleKey<?, ?>> RULE_CODEC = RULE_REGISTRY.getCodec();
+    private static final Codec<Map<RuleKey<?, ?>, RuleKey.Value<?>>> MAP_CODEC = Codec.dispatchedMap(RULE_CODEC, RuleKey::valueWrapperCodec);
+    public static final Codec<Rules> CODEC = MAP_CODEC.xmap(Rules::new, Rules::entries);
 
-    protected static <V, R extends Rule<V>> RuleKey<V> register(Identifier identifier, RuleFactory<V, R> factory) {
-        var key = new RuleKey<V>(identifier);
+    protected static <V, R extends Rule<V>> RuleKey<V, R> register(Identifier identifier, Function<Identifier, RuleKey<V, R>> factory) {
+        RuleKey<V, R> key = factory.apply(identifier);
 
-        RULE_TYPES.put(key, factory);
-
-        return key;
+        return Registry.register(RULE_REGISTRY, identifier, key);
     }
 
-    private final Map<RuleKey<?>, Rule<?>> rules;
-    private final Map<RuleKey<?>, RuleChangeCallback<?>> callbacks = new HashMap<>();
+    public static Map<RuleKey<?, ?>, RuleKey.Value<?>> defaultRules() {
+        return RULE_REGISTRY.stream()
+                .collect(Collectors.toUnmodifiableMap(Function.identity(), RuleKey::wrappedDefaultValue));
+    }
+
+    private final Map<RuleKey<?, ?>, Rule<?>> rules;
+    private final Map<RuleKey<?, ?>, RuleChangeCallback<?>> callbacks = new HashMap<>();
     @Nullable
     private GlobalRuleChangeCallback globalCallback;
 
     public Rules() {
-        this(null);
+        this(Map.of(), null);
+    }
+
+    public Rules(Map<RuleKey<?, ?>, RuleKey.Value<?>> ruleOverrides) {
+        this(ruleOverrides, null);
     }
 
     public Rules(@Nullable GlobalRuleChangeCallback globalCallback) {
-        rules = RULE_TYPES.entrySet()
-                .stream()
-                .collect(ImmutableMap.<Map.Entry<RuleKey<?>, RuleFactory<?, ?>>, RuleKey<?>, Rule<?>>toImmutableMap(
-                        Map.Entry::getKey,
-                        e -> {
-                            var handle = e.getKey().cast((oldValue, newValue) -> this.changed(e.getKey(), oldValue, newValue));
+        this(Map.of(), globalCallback);
+    }
 
-                            return e.getValue().create(RuleHandle.cast(handle));
-                        }
-                ));
+    public Rules(Map<RuleKey<?, ?>, RuleKey.Value<?>> ruleOverrides, @Nullable GlobalRuleChangeCallback globalCallback) {
+        var rules = new HashMap<>(defaultRules());
 
+        rules.putAll(ruleOverrides);
+
+        var builder = ImmutableMap.<RuleKey<?, ?>, Rule<?>>builder();
+
+        for (var _entry : rules.entrySet()) {
+            var entry = RuleValue.makeUnsafe(_entry.getKey(), _entry.getValue());
+            var rule = entry.createRule((oldValue, newValue) -> this.changed(entry.factory, oldValue, newValue));
+
+            builder.put(entry.factory, rule);
+        }
+
+        this.rules = builder.build();
         this.globalCallback = globalCallback;
     }
 
     @SuppressWarnings("unchecked")
     @NotNull
-    public <V> Rule<V> getRule(RuleKey<V> key) {
-        Rule<?> rule = rules.get(key);
+    public <V, R extends Rule<V>> R getRule(RuleKey<V, R> key) {
+        R rule = (R) rules.get(key);
 
         if (rule == null) {
             throw new NullPointerException("Rule of type %s not registered".formatted(key.identifier()));
         }
 
-        return (Rule<V>) rule;
+        return rule;
     }
 
-    public <V> V get(RuleKey<V> key) {
+    public <V, R extends Rule<V>> V get(RuleKey<V, R> key) {
         return getRule(key).get();
     }
 
-    public <V> void set(RuleKey<V> key, V value) {
+    public <V, R extends Rule<V>> void set(RuleKey<V, R> key, V value) {
         getRule(key).set(value);
     }
 
-    public Set<RuleKey<?>> rules() {
+    public Set<RuleKey<?, ?>> rules() {
         return Collections.unmodifiableSet(rules.keySet());
     }
 
-    public void load(NbtCompound nbt) {
-        rules.forEach((key, rule) -> {
-            String id = key.identifier().toString();
-
-            if (!nbt.contains(id, NbtElement.STRING_TYPE)) return;
-
-            String value = nbt.getString(id);
-
-            rule.deserialize(value);
-        });
-    }
-
-    public NbtCompound toNbt() {
-        NbtCompound nbt = new NbtCompound();
-
-        rules.forEach((key, rule) -> nbt.putString(key.identifier().toString(), rule.serialized()));
-
-        return nbt;
+    private Map<RuleKey<?, ?>, RuleKey.Value<?>> entries() {
+        return rules.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                e -> RuleValue.makeUnsafe(e.getKey(), e.getValue()).wrapValue()
+        ));
     }
 
     @SuppressWarnings("unchecked")
-    private <V, T extends Rule<V>> void changed(RuleKey<V> rule, Object oldValue, Object newValue) {
+    private <V, T extends Rule<V>> void changed(RuleKey<V, T> rule, Object oldValue, Object newValue) {
         if (globalCallback != null) {
             globalCallback.onChange(rule, oldValue, newValue);
         }
@@ -117,7 +120,7 @@ public class Rules {
         }
     }
 
-    public <T extends Rule<?>> void whenChanged(GlobalRuleChangeCallback globalCallback) {
+    public void whenChanged(GlobalRuleChangeCallback globalCallback) {
         if (this.globalCallback == null) {
             this.globalCallback = globalCallback;
             return;
@@ -133,7 +136,7 @@ public class Rules {
     }
 
     @SuppressWarnings("unchecked")
-    public <V> void whenChanged(RuleKey<V> rule, RuleChangeCallback<V> callback) {
+    public <V, R extends Rule<V>> void whenChanged(RuleKey<V, R> rule, RuleChangeCallback<V> callback) {
         callbacks.compute(rule, (ruleKey, oldCallback) -> {
             if (oldCallback == null) {
                 return callback;
@@ -146,14 +149,8 @@ public class Rules {
         });
     }
 
-    public static void each(Consumer<RuleKey<?>> action) {
-        RULE_TYPES.keySet().forEach(action);
-    }
-
-    @Nullable
-    public static SuggestionProvider<ServerCommandSource> suggestions(RuleKey<?> rule) {
-        return Objects.requireNonNull(RULE_TYPES.get(rule), () -> "Unknown rule %s".formatted(rule.identifier()))
-                .getSuggestions();
+    public static void each(Consumer<RuleKey<?, ?>> action) {
+        RULE_REGISTRY.stream().forEach(action);
     }
 
     public interface RuleChangeCallback<V> {
@@ -161,6 +158,27 @@ public class Rules {
     }
 
     public interface GlobalRuleChangeCallback {
-        void onChange(RuleKey<?> ruleKey, Object oldValue, Object newValue);
+        void onChange(RuleKey<?, ?> ruleKey, Object oldValue, Object newValue);
+    }
+
+    private record RuleValue<V, R extends Rule<V>>(RuleKey<V, R> factory, V value) {
+
+        @SuppressWarnings("unchecked")
+        public static <V, R extends Rule<V>> RuleValue<V, R> makeUnsafe(RuleKey<V, R> factory, RuleKey.Value<?> wrapper) {
+            return new RuleValue<>(factory, (V) wrapper.value());
+        }
+
+        @SuppressWarnings("unchecked")
+        public static <V, R extends Rule<V>> RuleValue<V, R> makeUnsafe(RuleKey<V, R> factory, Rule<?> rule) {
+            return new RuleValue<>(factory, (V) rule.get());
+        }
+
+        public RuleKey.Value<V> wrapValue() {
+            return new RuleKey.Value<>(value, factory.valueCodec());
+        }
+
+        public R createRule(RuleHandle<Object> handle) {
+            return factory.createRule(value, RuleHandle.cast(factory.castHandle(handle)));
+        }
     }
 }

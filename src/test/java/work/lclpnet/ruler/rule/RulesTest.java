@@ -1,41 +1,50 @@
 package work.lclpnet.ruler.rule;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
+import com.mojang.serialization.Codec;
+import net.minecraft.Bootstrap;
+import net.minecraft.SharedConstants;
 import net.minecraft.util.Identifier;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import work.lclpnet.ruler.rule.rules.BooleanRule;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class RulesTest {
 
-    private static final RuleKey<String> TEST_RULE = Rules.register(Identifier.of("ruler", "test"),
-            TestStringRule::new);
+    private static final RuleKey<String, TestStringRule> TEST_RULE = Rules.register(
+            Identifier.of("ruler", "test"),
+            TestStringRule::create
+    );
+
+    @BeforeAll
+    public static void setupAll() {
+        SharedConstants.createGameVersion();
+        Bootstrap.initialize();
+        BuiltinRules.initialize();
+    }
 
     @Test
     void rules_default_equals() {
         Rules rules = new Rules();
         var keys = rules.rules();
-        assertEquals(Rules.RULE_TYPES.keySet(), keys);
+        assertEquals(Rules.defaultRules().keySet(), keys);
     }
 
     @Test
     void getRule_existing_succeeds() {
         Rules rules = new Rules();
-        rules.getRule(Rules.ICE_MELTING);
+        rules.getRule(BuiltinRules.ICE_MELTING);
     }
 
     @Test
     void getRule_missing_throws() {
         Rules rules = new Rules();
-        var key = new RuleKey<>(Identifier.of("test", "test"));
+        RuleKey<?, ?> key = new StringKey(Identifier.of("foo"), "bar");
 
         String msg = "Rule of type %s not registered".formatted(key.identifier());
         assertThrows(NullPointerException.class, () -> rules.getRule(key), msg);
@@ -43,12 +52,11 @@ class RulesTest {
 
     @ParameterizedTest
     @MethodSource("keys")
-    <V, R extends Rule<V>> void get_default_defaultValue(RuleKey<V> key) {
+    <V, R extends Rule<V>> void get_default_defaultValue(RuleKey<V, R> key) {
         var rules = new Rules();
         V actual = rules.get(key);
+        V expected = key.defaultValue();
 
-        RuleHandle<V> handle = (oldValue, newValue) -> {};
-        var expected = Rules.RULE_TYPES.get(key).create(RuleHandle.cast(handle)).get();
         assertEquals(expected, actual);
     }
 
@@ -64,70 +72,17 @@ class RulesTest {
     @Test
     void set_boolean_updated() {
         var rules = new Rules();
+        var rule = BuiltinRules.ICE_MELTING;
+        boolean expected = !rule.defaultValue();
 
-        @SuppressWarnings("unchecked")
-        var ruleFactory = (RuleFactory<Boolean, BooleanRule>) Rules.RULE_TYPES.get(Rules.ICE_MELTING);
-        RuleHandle<Boolean> handle = (oldValue, newValue) -> {};
+        rules.set(rule, expected);
 
-        boolean expected = !ruleFactory.create(handle).getBoolean();
-
-        rules.set(Rules.ICE_MELTING, expected);
-
-        assertEquals(expected, rules.get(Rules.ICE_MELTING));
-    }
-
-    @Test
-    void get_default_defaultValue() {
-        var rules = new Rules();
-
-        assertTrue(rules.get(Rules.ICE_MELTING));
-    }
-
-    @Test
-    void toNbt_default_stringPairs() {
-        var rules = new Rules();
-        NbtCompound nbt = rules.toNbt();
-
-        for (String key : nbt.getKeys()) {
-            assertTrue(nbt.contains(key, NbtElement.STRING_TYPE), "Non string value");
-        }
-    }
-
-    @Test
-    void toNbt_default_allKeys() {
-        var rules = new Rules();
-        NbtCompound nbt = rules.toNbt();
-
-        var expected = Rules.RULE_TYPES.keySet().stream()
-                .map(RuleKey::identifier)
-                .map(Identifier::toString)
-                .collect(Collectors.toSet());
-
-        assertEquals(expected, nbt.getKeys());
-    }
-
-    @Test
-    void load_nbt_succeeds() {
-        final var rule = Rules.ICE_MELTING;
-
-        NbtCompound nbt = new NbtCompound();
-
-        RuleHandle<Boolean> handle = (oldValue, newValue) -> {};
-
-        @SuppressWarnings("unchecked")
-        boolean def = ((RuleFactory<Boolean, BooleanRule>) Rules.RULE_TYPES.get(rule)).create(handle).getBoolean();
-
-        nbt.putString(rule.identifier().toString(), Boolean.toString(!def));
-
-        var rules = new Rules();
-        rules.load(nbt);
-
-        assertEquals(!def, rules.get(rule));
+        assertEquals(expected, rules.get(rule));
     }
 
     @Test
     void callback_given_isCalled() {
-        final var rule = Rules.ICE_MELTING;
+        final var rule = BuiltinRules.ICE_MELTING;
 
         AtomicBoolean called = new AtomicBoolean(false);
 
@@ -152,7 +107,7 @@ class RulesTest {
 
         rules.whenChanged((ruleKey, oldValue, newValue) -> called.set(true));
 
-        rules.set(Rules.ICE_MELTING, true);
+        rules.set(BuiltinRules.ICE_MELTING, true);
 
         assertTrue(called.get());
     }
@@ -166,22 +121,23 @@ class RulesTest {
 
         rules.whenChanged((ruleKey, oldValue, newValue) -> called2.set(true));
 
-        rules.set(Rules.ICE_MELTING, true);
+        rules.set(BuiltinRules.ICE_MELTING, true);
 
         assertTrue(called1.get());
         assertTrue(called2.get());
     }
 
-    private static Stream<RuleKey<?>> keys() {
-        return Rules.RULE_TYPES.keySet().stream();
+    private static Stream<RuleKey<?, ?>> keys() {
+        return Rules.defaultRules().keySet().stream();
     }
 
     private static class TestStringRule implements Rule<String> {
 
+        private String value;
         private final RuleHandle<String> handle;
-        private String value = "test";
 
-        public TestStringRule(RuleHandle<String> handle) {
+        public TestStringRule(String initialValue, RuleHandle<String> handle) {
+            this.value = initialValue;
             this.handle = handle;
         }
 
@@ -198,18 +154,30 @@ class RulesTest {
         }
 
         @Override
-        public String serialized() {
-            return value;
-        }
-
-        @Override
-        public void deserialize(String serialized) {
-            this.value = serialized;
-        }
-
-        @Override
         public void changeFromInput(String input) {
             set(input);
+        }
+
+        public static RuleKey<String, TestStringRule> create(Identifier id) {
+            return new StringKey(id, "test");
+        }
+    }
+
+    private record StringKey(Identifier identifier, String defaultValue) implements RuleKey<String, TestStringRule> {
+
+        @Override
+        public String defaultValue() {
+            return defaultValue;
+        }
+
+        @Override
+        public TestStringRule createRule(String initialValue, RuleHandle<String> args) {
+            return new TestStringRule(initialValue, args);
+        }
+
+        @Override
+        public Codec<String> valueCodec() {
+            return Codec.STRING;
         }
     }
 }

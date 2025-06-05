@@ -1,10 +1,14 @@
 package work.lclpnet.ruler.rule.rules;
 
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.serialization.Codec;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.util.Identifier;
 import work.lclpnet.ruler.rule.Rule;
-import work.lclpnet.ruler.rule.RuleFactory;
+import work.lclpnet.ruler.rule.RuleKey;
 import work.lclpnet.ruler.rule.RuleHandle;
+
+import java.util.function.Function;
 
 public class BooleanRule implements Rule<Boolean> {
 
@@ -27,16 +31,6 @@ public class BooleanRule implements Rule<Boolean> {
     }
 
     @Override
-    public String serialized() {
-        return Boolean.toString(this.value);
-    }
-
-    @Override
-    public void deserialize(String serialized) {
-        this.value = Boolean.parseBoolean(serialized);
-    }
-
-    @Override
     public void changeFromInput(String input) {
         setBoolean(Boolean.parseBoolean(input));
     }
@@ -51,20 +45,28 @@ public class BooleanRule implements Rule<Boolean> {
         handle.onChange(old, this.value);
     }
 
-    public static RuleFactory<Boolean, BooleanRule> create(boolean value) {
-        return new Factory(value);
+    public static Function<Identifier, RuleKey<Boolean, BooleanRule>> create(boolean defaultValue) {
+        return id -> new BoolKey(id, defaultValue);
     }
 
-    private record Factory(boolean value) implements RuleFactory<Boolean, BooleanRule> {
+    private record BoolKey(Identifier identifier, Boolean defaultValue) implements RuleKey<Boolean, BooleanRule> {
 
         @Override
-        public BooleanRule create(RuleHandle<Boolean> handle) {
-            return new BooleanRule(handle, value);
+        public BooleanRule createRule(Boolean initialValue, RuleHandle<Boolean> handle) {
+            return new BooleanRule(handle, initialValue);
+        }
+
+        @Override
+        public Codec<Boolean> valueCodec() {
+            return Codec.BOOL;
         }
 
         @Override
         public SuggestionProvider<ServerCommandSource> getSuggestions() {
-            return (context, builder) -> builder.suggest("true").suggest("false").buildFuture();
+            return (context, builder) -> builder
+                    .suggest("true")
+                    .suggest("false")
+                    .buildFuture();
         }
     }
 }
