@@ -58,7 +58,7 @@ public class BooleanRule implements Rule<Boolean> {
 
         @Override
         public Codec<Boolean> valueCodec() {
-            return Codec.BOOL;
+            return Codec.withAlternative(Codec.BOOL, Codec.STRING.xmap(Boolean::parseBoolean, b -> Boolean.toString(b)));
         }
 
         @Override
