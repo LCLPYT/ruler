@@ -3,10 +3,10 @@ package work.lclpnet.ruler.rule;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.SimpleRegistry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.MappedRegistry;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import work.lclpnet.ruler.Ruler;
@@ -21,16 +21,16 @@ import java.util.stream.Collectors;
 
 public class Rules {
 
-    private static final Registry<RuleKey<?, ?>> RULE_REGISTRY = new SimpleRegistry<>(
-            RegistryKey.ofRegistry(Ruler.identifier("rules")),
+    private static final Registry<RuleKey<?, ?>> RULE_REGISTRY = new MappedRegistry<>(
+            ResourceKey.createRegistryKey(Ruler.identifier("rules")),
             Lifecycle.stable()
     );
 
-    private static final Codec<RuleKey<?, ?>> RULE_CODEC = RULE_REGISTRY.getCodec();
+    private static final Codec<RuleKey<?, ?>> RULE_CODEC = RULE_REGISTRY.byNameCodec();
     private static final Codec<Map<RuleKey<?, ?>, RuleKey.Value<?>>> MAP_CODEC = Codec.dispatchedMap(RULE_CODEC, RuleKey::valueWrapperCodec);
     public static final Codec<Rules> CODEC = MAP_CODEC.xmap(Rules::new, Rules::entries);
 
-    protected static <V, R extends Rule<V>> RuleKey<V, R> register(Identifier identifier, Function<Identifier, RuleKey<V, R>> factory) {
+    protected static <V, R extends Rule<V>> RuleKey<V, R> register(ResourceLocation identifier, Function<ResourceLocation, RuleKey<V, R>> factory) {
         RuleKey<V, R> key = factory.apply(identifier);
 
         return Registry.register(RULE_REGISTRY, identifier, key);

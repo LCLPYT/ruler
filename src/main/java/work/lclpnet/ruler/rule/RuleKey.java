@@ -2,13 +2,13 @@ package work.lclpnet.ruler.rule;
 
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.serialization.Codec;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.util.Identifier;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 public interface RuleKey<V, R extends Rule<V>> {
 
-    Identifier identifier();
+    ResourceLocation identifier();
 
     V defaultValue();
 
@@ -27,7 +27,7 @@ public interface RuleKey<V, R extends Rule<V>> {
     }
 
     @Nullable
-    default SuggestionProvider<ServerCommandSource> getSuggestions() {
+    default SuggestionProvider<CommandSourceStack> getSuggestions() {
         return null;
     }
 

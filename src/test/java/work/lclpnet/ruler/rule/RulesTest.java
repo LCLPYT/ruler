@@ -1,9 +1,9 @@
 package work.lclpnet.ruler.rule;
 
 import com.mojang.serialization.Codec;
-import net.minecraft.Bootstrap;
+import net.minecraft.server.Bootstrap;
 import net.minecraft.SharedConstants;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,14 +17,14 @@ import static org.junit.jupiter.api.Assertions.*;
 class RulesTest {
 
     private static final RuleKey<String, TestStringRule> TEST_RULE = Rules.register(
-            Identifier.of("ruler", "test"),
+            ResourceLocation.fromNamespaceAndPath("ruler", "test"),
             TestStringRule::create
     );
 
     @BeforeAll
     public static void setupAll() {
-        SharedConstants.createGameVersion();
-        Bootstrap.initialize();
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
         BuiltinRules.initialize();
     }
 
@@ -44,7 +44,7 @@ class RulesTest {
     @Test
     void getRule_missing_throws() {
         Rules rules = new Rules();
-        RuleKey<?, ?> key = new StringKey(Identifier.of("foo"), "bar");
+        RuleKey<?, ?> key = new StringKey(ResourceLocation.parse("foo"), "bar");
 
         String msg = "Rule of type %s not registered".formatted(key.identifier());
         assertThrows(NullPointerException.class, () -> rules.getRule(key), msg);
@@ -158,12 +158,12 @@ class RulesTest {
             set(input);
         }
 
-        public static RuleKey<String, TestStringRule> create(Identifier id) {
+        public static RuleKey<String, TestStringRule> create(ResourceLocation id) {
             return new StringKey(id, "test");
         }
     }
 
-    private record StringKey(Identifier identifier, String defaultValue) implements RuleKey<String, TestStringRule> {
+    private record StringKey(ResourceLocation identifier, String defaultValue) implements RuleKey<String, TestStringRule> {
 
         @Override
         public String defaultValue() {

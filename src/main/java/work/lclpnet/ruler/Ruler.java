@@ -1,6 +1,6 @@
 package work.lclpnet.ruler;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import work.lclpnet.ruler.api.RulerApi;
@@ -23,8 +23,8 @@ public final class Ruler {
      * @param path The path.
      * @return An identifier of this mod with the given path.
      */
-    public static Identifier identifier(String path) {
-        return Identifier.of(MOD_ID, path);
+    public static ResourceLocation identifier(String path) {
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 
     public static String permission(String suffix) {

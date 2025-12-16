@@ -1,8 +1,8 @@
 package work.lclpnet.ruler.event;
 
-import net.minecraft.block.FarmlandBlock;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.FarmBlock;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import work.lclpnet.kibu.behaviour.world.ServerWorldBehaviour;
 import work.lclpnet.kibu.hook.world.BlockModificationHooks;
 import work.lclpnet.kibu.hook.world.FarmlandMoistureChangeCallback;
@@ -29,7 +29,7 @@ public class WorldListener {
         BlockModificationHooks.TRAMPLE_TURTLE_EGG.register((world, pos, entity) -> shouldCancel(world, BuiltinRules.TURTLE_EGG_TRAMPLING));
 
         FarmlandMoistureChangeCallback.HOOK.register((serverWorld, blockPos, moisture)
-                -> moisture < serverWorld.getBlockState(blockPos).get(FarmlandBlock.MOISTURE)
+                -> moisture < serverWorld.getBlockState(blockPos).getValue(FarmBlock.MOISTURE)
                 && shouldCancel(serverWorld, BuiltinRules.FARMLAND_DRY_OUT));
 
         ServerWorldHooks.LOAD.register((server, world) -> {
@@ -42,7 +42,7 @@ public class WorldListener {
         });
     }
 
-    private boolean shouldCancel(World world, RuleKey<Boolean, ?> rule) {
-        return world instanceof ServerWorld serverWorld && !ruleManager.getRules(serverWorld).get(rule);
+    private boolean shouldCancel(Level world, RuleKey<Boolean, ?> rule) {
+        return world instanceof ServerLevel serverWorld && !ruleManager.getRules(serverWorld).get(rule);
     }
 }
