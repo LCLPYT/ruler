@@ -3,7 +3,7 @@ package work.lclpnet.ruler.rule.rules;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.serialization.Codec;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import work.lclpnet.ruler.rule.Rule;
 import work.lclpnet.ruler.rule.RuleKey;
 import work.lclpnet.ruler.rule.RuleHandle;
@@ -45,11 +45,11 @@ public class BooleanRule implements Rule<Boolean> {
         handle.onChange(old, this.value);
     }
 
-    public static Function<ResourceLocation, RuleKey<Boolean, BooleanRule>> create(boolean defaultValue) {
+    public static Function<Identifier, RuleKey<Boolean, BooleanRule>> create(boolean defaultValue) {
         return id -> new BoolKey(id, defaultValue);
     }
 
-    private record BoolKey(ResourceLocation identifier, Boolean defaultValue) implements RuleKey<Boolean, BooleanRule> {
+    private record BoolKey(Identifier identifier, Boolean defaultValue) implements RuleKey<Boolean, BooleanRule> {
 
         @Override
         public BooleanRule createRule(Boolean initialValue, RuleHandle<Boolean> handle) {

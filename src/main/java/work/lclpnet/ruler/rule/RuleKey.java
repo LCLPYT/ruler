@@ -3,12 +3,12 @@ package work.lclpnet.ruler.rule;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.serialization.Codec;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 public interface RuleKey<V, R extends Rule<V>> {
 
-    ResourceLocation identifier();
+    Identifier identifier();
 
     V defaultValue();
 

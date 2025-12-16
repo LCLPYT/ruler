@@ -6,7 +6,7 @@ import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.MappedRegistry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import work.lclpnet.ruler.Ruler;
@@ -30,7 +30,7 @@ public class Rules {
     private static final Codec<Map<RuleKey<?, ?>, RuleKey.Value<?>>> MAP_CODEC = Codec.dispatchedMap(RULE_CODEC, RuleKey::valueWrapperCodec);
     public static final Codec<Rules> CODEC = MAP_CODEC.xmap(Rules::new, Rules::entries);
 
-    protected static <V, R extends Rule<V>> RuleKey<V, R> register(ResourceLocation identifier, Function<ResourceLocation, RuleKey<V, R>> factory) {
+    protected static <V, R extends Rule<V>> RuleKey<V, R> register(Identifier identifier, Function<Identifier, RuleKey<V, R>> factory) {
         RuleKey<V, R> key = factory.apply(identifier);
 
         return Registry.register(RULE_REGISTRY, identifier, key);
