@@ -1,13 +1,13 @@
 package work.lclpnet.ruler.event;
 
-import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import work.lclpnet.kibu.behaviour.world.ServerWorldBehaviour;
-import work.lclpnet.kibu.hook.world.BlockModificationHooks;
-import work.lclpnet.kibu.hook.world.FarmlandMoistureChangeCallback;
-import work.lclpnet.kibu.hook.world.ServerWorldHooks;
-import work.lclpnet.kibu.hook.world.WorldPhysicsHooks;
+import net.minecraft.world.level.block.FarmlandBlock;
+import work.lclpnet.kibu.behaviour.level.ServerLevelBehaviour;
+import work.lclpnet.kibu.hook.level.BlockModificationHooks;
+import work.lclpnet.kibu.hook.level.FarmlandMoistureChangeCallback;
+import work.lclpnet.kibu.hook.level.LevelPhysicsHooks;
+import work.lclpnet.kibu.hook.level.ServerLevelHooks;
 import work.lclpnet.ruler.api.RuleManager;
 import work.lclpnet.ruler.rule.BuiltinRules;
 import work.lclpnet.ruler.rule.RuleKey;
@@ -22,23 +22,23 @@ public class WorldListener {
     }
 
     public void register() {
-        WorldPhysicsHooks.MELT.register((world, pos) -> shouldCancel(world, BuiltinRules.ICE_MELTING));
-        WorldPhysicsHooks.FREEZE.register((world, pos) -> shouldCancel(world, BuiltinRules.WATER_FREEZING));
-        WorldPhysicsHooks.CORAL_DEATH.register((world, pos) -> shouldCancel(world, BuiltinRules.CORAL_DEATH));
+        LevelPhysicsHooks.MELT.register((world, pos) -> shouldCancel(world, BuiltinRules.ICE_MELTING));
+        LevelPhysicsHooks.FREEZE.register((world, pos) -> shouldCancel(world, BuiltinRules.WATER_FREEZING));
+        LevelPhysicsHooks.CORAL_DEATH.register((world, pos) -> shouldCancel(world, BuiltinRules.CORAL_DEATH));
         BlockModificationHooks.TRAMPLE_FARMLAND.register((world, pos, entity) -> shouldCancel(world, BuiltinRules.FARMLAND_TRAMPLING));
         BlockModificationHooks.TRAMPLE_TURTLE_EGG.register((world, pos, entity) -> shouldCancel(world, BuiltinRules.TURTLE_EGG_TRAMPLING));
 
         FarmlandMoistureChangeCallback.HOOK.register((serverWorld, blockPos, moisture)
-                -> moisture < serverWorld.getBlockState(blockPos).getValue(FarmBlock.MOISTURE)
+                -> moisture < serverWorld.getBlockState(blockPos).getValue(FarmlandBlock.MOISTURE)
                 && shouldCancel(serverWorld, BuiltinRules.FARMLAND_DRY_OUT));
 
-        ServerWorldHooks.LOAD.register((server, world) -> {
+        ServerLevelHooks.LOAD.register((server, world) -> {
             Rules rules = ruleManager.getRules(world);
 
             rules.whenChanged(BuiltinRules.FLUID_FLOW, (oldValue, newValue)
-                    -> ServerWorldBehaviour.setFluidTicksEnabled(world, newValue));
+                    -> ServerLevelBehaviour.setFluidTicksEnabled(world, newValue));
 
-            ServerWorldBehaviour.setFluidTicksEnabled(world, rules.get(BuiltinRules.FLUID_FLOW));
+            ServerLevelBehaviour.setFluidTicksEnabled(world, rules.get(BuiltinRules.FLUID_FLOW));
         });
     }
 
