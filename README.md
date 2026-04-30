@@ -48,3 +48,6 @@ If you want to modify or query the rules of a different dimension, you can pass 
 | Modify rule value       | ruler.command.rule.set.&lt;rule&gt; |
 | Use rule get subcommand | ruler.command.rule.get              |
 | See rule value          | ruler.command.rule.get.&lt;rule&gt; |
+
+## Migration guide
+If you want to migrate a world from Minecraft 1.21.11 or earlier to 26.1+, you need to move `<world>/data/ruler.dat` to `<world>/dimensions/<dimension>/data/ruler/rules.dat`.
