@@ -117,7 +117,7 @@ public class RuleCommand {
         source.sendSystemMessage(translationService.translateText(source, "ruler.cmd.rule.current",
                         styled(key.identifier(), ChatFormatting.YELLOW),
                         styled(rule.get().toString(), ChatFormatting.YELLOW))
-                .formatted(ChatFormatting.GREEN));
+                .withStyle(ChatFormatting.GREEN));
 
         return 1;
     }
@@ -133,7 +133,7 @@ public class RuleCommand {
         source.sendSystemMessage(translationService.translateText(source, "ruler.cmd.rule.updated",
                         styled(key.identifier(), ChatFormatting.YELLOW),
                         styled(rule.get().toString(), ChatFormatting.YELLOW))
-                .formatted(ChatFormatting.GREEN));
+                .withStyle(ChatFormatting.GREEN));
 
         return 1;
     }
